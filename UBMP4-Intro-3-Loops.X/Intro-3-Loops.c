@@ -1,59 +1,135 @@
 /*==============================================================================
- Project: Intro-3-Loops
+ Project: Intro-4-Functions
  Date:    May 16, 2021
  
- This example program demonstrates the use of while and for loop structures to
- change the brightness of LEDs using PWM (Pulse-Width Modulated) signals.
+ This program demonstrates the use of functions, and variable passing between
+ the main and function code.
  
- Additional program analysis and programming activities expand the use of loops
- to create tones of different pitches and frequency sweeps.
+ Additional program analysis and programming activities examine function code
+ location, function prototypes, and reinforce the concepts of global and local
+ variables.
 ==============================================================================*/
 
 #include    "xc.h"              // Microchip XC8 compiler include file
 #include    "stdint.h"          // Include integer definitions
 #include    "stdbool.h"         // Include Boolean (true/false) definitions
-
+#include <stdio.h>
+#include <string.h>
 #include    "UBMP4.h"           // Include UBMP4 constants and functions
 
 // TODO Set linker ROM ranges to 'default,-0-7FF' under "Memory model" pull-down.
 // TODO Set linker code offset to '800' under "Additional options" pull-down.
 
-// Program variable definitions
-unsigned char TonLED4 = 127;    // LED brightness PWM value
-unsigned char PWMperiod;        // PWM period counter for PWM loops
-unsigned int period = 460;      // Sound period value for later activities
+// Button constant definitions
+const char noButton = 0;
+const char UP = 1;
+const char DOWN = 2;
+const char MEIKAI = 3;
+const char POGGERS = 4;
 
-int main(void)
-{
+const unsigned int D4NOTE = 3405;
+const unsigned int D5NOTE = 1703;
+const unsigned int A4NOTE = 2273;
+const unsigned int AF4NOTE = 2408;
+
+
+// Program variable definitions
+unsigned char LED5Brightness = 125;
+unsigned char button;
+
+unsigned char button_pressed(void);
+void pwm_LED5(unsigned char pwmValue);
+unsigned char getButtonPressed(void);
+void lightLed(unsigned char);
+void clearLeds(void);
+void delay_us(unsigned int us);
+void playNote(unsigned int period);
+unsigned int getTone(void);
+int memory[50];
+int musicMemory[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
+void playBack(void);
+void delay_ms(unsigned char);
+void beepSelect(int);
+void morseCode(void);
+
+int pressedCounter = 250;
+int arrayCell = 0;
+int mode = 0;
+int randonumbo = 500;
+int main(void) {
     OSC_config();               // Configure internal oscillator for 48 MHz
     UBMP4_config();             // Configure on-board UBMP4 I/O devices
 	
+    for (int i = 0; i <= 50; i++) {
+        
+        memory[i] = 3;
+        
+    }
+    
     while(1)
 	{
-        // Decrease brightness
-        if(SW2 == 0)
-        {
-            TonLED4 -= 1;
-        }
-
-        // Increase brightness
-        if(SW3 == 0)
-        {
-            TonLED4 += 1;
-        }
+        pressedCounter = 250;
+        LATC = 0b10000000;
+            
         
-        // PWM LED4 brightness
-        PWMperiod = 255;
-        while(PWMperiod != 0)
-        {
-            if(TonLED4 == PWMperiod)
-            {
-                LED4 = 1;
+            if (SW2 == 0 && mode <= 4) {
+                
+                mode++;
+                beepSelect(0);
+                while (SW2 == 0);
+                __delay_ms(50);
+            } else if (mode == 4) {
+                mode = 0;
             }
-            PWMperiod --;
-            __delay_us(20);
-        }
-        LED4 = 0;
+            
+            if (mode == 0) {
+                
+                LATC = 0b10000000;
+                
+                
+            } else if (mode == 1) {
+                
+                LATC = 0b10010000;
+                
+                
+            } else if (mode == 2) {
+                
+                LATC = 0b11010000;
+                if (SW5 == 0) {
+                    beepSelect(3);
+                    
+                }
+                
+            } else if (mode == 3) {
+                
+                LATC = 0b11110000;
+                if (SW5 == 0) {
+                    beepSelect(3);
+                    morseCode();
+                }
+                
+            }
+            
+       /* if (SW5 == 0) {
+            
+            for (long i = 0; i < 50000; i+=250){
+                BEEPER = !BEEPER;
+                __delay_us(500);
+            }
+            
+            for (long i = 0; i < 50000; i+=200){
+                BEEPER = !BEEPER;
+                __delay_us(400);
+            }
+            while(SW5 == 0);
+            __delay_ms(50);
+            
+           // while(SW5 == 0);
+           // __delay_ms(50);
+        }*/
+        
+        
+        
         
         // Activate bootloader if SW1 is pressed.
         if(SW1 == 0)
@@ -63,140 +139,264 @@ int main(void)
     }
 }
 
-/* Program Analysis
- * 
- * 1. The main part of the program contains the 'while(1)' loop. What condition
- *    is being evaluated within its brackets? (Hint: Think about the Boolean
- *    variables from Activity 2-Variables.) How many times will this loop run?
- * 
- * 2. There is a second 'while(PWMperiod != 0)' loop inside the first while
- *    loop. What condition is being evaluated inside this while statement's
- *    brackets? How many times will the contents of this inner loop run?
- * 
- * 3. What condition is being evaluated by the if statement inside the loop?
- *    What happens when the if condition is true?
- * 
- * 4. Pressing the up or down buttons (SW3 and SW2) will increase or decrease
- *    the brightness of LED D4 using PWM (Pulse-Width Modulation). How many 
- *    different brightnesses can the LED have? What would the step size of one
- *    brightness level change be if it was expressed as a percentage?
- * 
- * 5. The while loop needs three statements to perform its function. First, the
- *    assignment statement 'PWMperiod = 255;' sets the PWMperiod variable. Next,
- *    the condition 'while(PWMperiod != 0)' runs the contents of the loop code
- *    while the condition is true. Unlike if statements, in which program flow
- *    continues below the contents of the if structure, the while loop causes
- *    the condition to be re-evaluated after executing the contents of its code.
- *    To ensure that the while loop does end at some point, the assignment
- *    statement 'PWMperiod --;' modifies the variable from within the loop.
- *    When the condition is false, the loop terminates and the program continues
- *    running the code below the loop structure.
- * 
- *    A 'for' loop is an alternative to a while loop, and incorporates the
- *    assignment of the loop variable, the loop conditional check, and variable
- *    modification into a single statement as shown in the example code. Replace
- *    the entire while structure in the code with the following for structure:
-        
-        // PWM LED4 brightness
-        for(unsigned char PWMperiod = 255; PWMperiod != 0; PWMperiod --)
-        {
-            if(TonLED4 == PWMperiod)
-            {
-                LED4 = 1;
-            }
-            __delay_us(20);
-        }
-        LED4 = 0;
-        
- *    What is an advantage of using a for loop instead of a while loop?
- * 
- * 6. The 'for' loop, above, redefines the PWMperiod variable in the 
- *    initialization statement: 'for(unsigned char PWMperiod = 255; ...'
- * 
- *    This instance of the PWMperiod variable will be local to the for loop,
- *    and won't maintain its value outside of the loop, or alter the value of
- *    the existing PWMperiod variable. It's a bad idea to re-use variable names
- *    inside loops since having two different versions of the same variable
- *    creates confusion. Is this really the case? Let's prove that the global
- *    PWMperiod variable is not affected by the local PWMperiod variable
- *    inside the for loop. Add this line above the for loop:
- 
-        PWMperiod = 128;
+// Move the function code to here in Program Analysis, step 5.
 
- *    Next, add the following lines after the for loop:
+void beepSelect(int picker456) {
+    
+    if (picker456 == 0) {
+        for (long i = 0; i < 50000; i+=250){
+            BEEPER = !BEEPER;
+            __delay_us(500);
+            }
+
+        for (long i = 0; i < 50000; i+=200){
+            BEEPER = !BEEPER;
+            __delay_us(400);
+        }
+    }
+    
+    if (picker456 == 1) {
         
-        if(PWMperiod == 128)
+        for (long i = 0; i < 50000; i+=200){
+            BEEPER = !BEEPER;
+            __delay_us(400);
+        }
+        
+        for (long i = 0; i < 50000; i+=250){
+            BEEPER = !BEEPER;
+            __delay_us(500);
+            }
+        
+    }
+    
+    if (picker456 == 3) {
+        
+        for (long i = 0; i < 50000; i+=300){
+            BEEPER = !BEEPER;
+            __delay_us(600);
+            }
+        
+        for (long i = 0; i < 50000; i+=250){
+            BEEPER = !BEEPER;
+            __delay_us(500);
+            }
+        
+        for (long i = 0; i < 50000; i+=150){
+            BEEPER = !BEEPER;
+            __delay_us(300);
+        }
+    }
+    
+}
+
+/*void musicWriter() {
+    
+    
+    
+}*/
+
+void delay_ms(unsigned char milliseconds)
+{
+   while(milliseconds > 0)
+   {
+      milliseconds--;
+       __delay_us(1000);
+   }
+}
+
+void morseCode() {
+    __delay_ms(300);
+    while(true) {
+        pressedCounter = 250;
+        
+        if (arrayCell <= 50) {
+
+            if (SW2 == 0) {
+
+                memory[arrayCell] = 2;
+                arrayCell++;
+                while(SW2 == 0);
+                __delay_ms(50);
+            }
+
+            if (SW3 == 0) {
+
+                memory[arrayCell] = 0;
+                arrayCell++;
+                while(SW3 == 0);
+                __delay_ms(50);
+            }
+
+            if (SW4 == 0) {
+                while (SW4 == 0) {
+
+                    if (SW3 == 0) {
+
+                        pressedCounter--;
+                        __delay_ms(1);
+
+                        if (pressedCounter == 0) {
+                            beepSelect(1);
+                            return;
+                        }
+                    } else if (SW4 == 1){
+                        memory[arrayCell] = 1;
+                        arrayCell++;
+                        while(SW4 == 0);
+                        __delay_ms(50);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (SW5 == 0) {
+            while (SW5 == 0) {
+                
+                if (SW2 == 0) {
+                    
+                    pressedCounter--;
+                    __delay_ms(1);
+
+                    if (pressedCounter == 0) {
+                        
+                        for (int i = 0; i <= 50; i++) {
+
+                            memory[i] = 3;
+
+                        }
+                        arrayCell = 0;
+                        while(SW5 == 0);
+                        __delay_ms(50);
+                        break;
+                    }
+                } else if (SW5 == 1) {
+                    
+                    playBack();
+                    while(SW5 == 0);
+                    __delay_ms(50);
+                    break;
+                }
+            }
+        }
+    }
+}
+
+
+    
+        
+void playBack() {
+    for (int i = 0; i <= 40; i++) {
+        
+        if (memory[i] == 0) {
+            
+            for (long ii = 0; ii < 100000; ii+=3405){
+                BEEPER = 1;
+                __delay_us(3405);
+                BEEPER = 0;
+                __delay_us(3405);
+            }
+            
+            __delay_ms(200);
+        }
+        
+        if (memory[i] == 1) {
+            
+            for (long iii = 0; iii < 200000; iii+=3405){
+                BEEPER = 1;
+                __delay_us(3405);
+                BEEPER = 0;
+                __delay_us(3405);
+            }
+            
+            __delay_ms(200);
+        }
+        
+        if (memory[i] == 2) {
+            
+            __delay_ms(500);
+            
+        }
+        
+        if (memory[i] == 3) {
+            
+            break;
+            
+        }
+    }
+}
+
+unsigned char getButtonPressed() {
+    if(SW2 == 0) {
+        return 2;
+    }
+    if(SW3 == 0) {
+        return 3;
+    }
+    if(SW4 == 0) {
+        return 4;
+    }
+    if(SW5 == 0) {
+        return 5;
+    }
+}
+
+void clearLeds() {
+    LATC = 0;
+}
+
+void lightLed(unsigned char led) {
+    switch(led) {
+        case 2:
+            LED2 = 1;
+            break;
+        case 3:
+            LED3 = 1;
+            break;
+        case 4:
+            LED4 = 1;
+            break;
+        case 5:
+            LED5 = 1;
+            break;
+        case 6:
+            LED6 = 1;
+            break;
+    }
+}
+
+unsigned char button_pressed(void) {
+    if(SW4 == 0)
+    {
+        return(UP);
+    }
+    else if(SW5 == 0)
+    {
+        return(DOWN);
+    }
+    else if(SW3 == 0) {
+        return MEIKAI;
+    } else if(SW2 == 0) {
+        return POGGERS;
+    }
+    else
+    {
+        return(noButton);
+    }
+}
+
+void pwm_LED5(unsigned char pwmValue) {
+    for(unsigned char t = 255; t != 0; t --)
+    {
+        if(pwmValue == t)
         {
             LED5 = 1;
         }
-        else
-        {
-            LED5 = 0;
-        }
-        
- *    Compile and run the code. When the program runs, the PWMperiod variable
- *    inside the for loop will count down from 255 to 0, and should be 0 when
- *    the loop finishes. Is LED D5 lit? What must the value of PWMperiod be?
- * 
- *    Can you remove the global PWMperiod variable definition from the top of 
- *    the program now that PWMperiod is being defined in the for loop?
- * 
- * 7. Add this code below the PWM loop to generate a tone:
-                
-        // Change pitch
-        if(SW4 == 0)
-        {
-            period -= 1;
-        }
-        
-        if(SW5 == 0)
-        {
-            period += 1;
-        }
-        
-        // Make a tone
-        for(unsigned char cycles = 50; cycles != 0; cycles--)
-        {
-            BEEPER = !BEEPER;
-            for(unsigned int p = period; p != 0; p--);
-        }
-
- *    The section to make a tone contains nested for loops. The outer loop 
- *    repeatedly causes the BEEPER pin to toggle before the inner loop runs.
- *    The inner loop is an empty loop, shown by its trailing semicolon ';'. It
- *    contains no code, so nothing will be repeated, but exists only to add a
- *    time delay to our program. The higher the number of loops, the more
- *    instruction cycles it will take to decrement the loop counter variable
- *    to zero, increasing the time delay until the next cycle.
- * 
- *    What variable type is period? How large a number can this variable hold?
- * 
- * 8. Why is period copied to the local variable p inside the inner for loop?
- *    What would happen if the actual period variable was decremented instead?
- * 
- * Programming Activities
- * 
- * 1. Pressing and holding SW2 or SW3 causes the brightness of LED D4 to cycle
- *    through its entire brightness range. Modify the code so that pressing and
- *    holding SW2 will dim the LED until it is off and then keep if off, and
- *    pressing and holding SW3 will brighten the LED and keep it at maximum
- *    brightness.
- * 
- * 2. Modify your program to control the brightness of LED D5 using SW4 and SW5
- *    while using SW3 and SW2 to control LED D4. Hint: To ensure each LED can
- *    reach maximum brightness (100% PWM on-time), you'll have to perform both
- *    PWM functions in the same loop. You can see the resulting PWM wave if you
- *    have access to an oscilloscope. If not, just light the other two LEDs and 
- *    compare the brightness of LEDs D4 and D5 to them.
- * 
- * 3. Rather than having lights suddenly turn on at full brightness, or motors
- *    turn on at full power, create a program that uses a for loop and your PWM
- *    code to make a 'soft-start' program that slowly increases the PWM on-time
- *    when you press a button. Can you make it turn off in a similar way?
- * 
- * 4. Make a program that creates an automated, electronic 'pulse', repeatedly
- *    brightening and dimming one or more LEDs.
- * 
- * 5. Make a 'chirp' or 'pew-pew' sound effect by sweeping through a range of
- *    frequencies when a button is pressed.
- */
+        __delay_us(20);
+    }
+    // End the pulse if pwmValue < 255
+    if(pwmValue < 255)
+    {
+        LED5 = 0;
+    }
+}
