@@ -25,6 +25,21 @@
  * Comments:
  * Revision history: 
  */
+
+struct Note2 {
+    unsigned long noteThing;
+    unsigned long pitch;
+    
+};
+
+typedef struct Note2 Note2;
+
+Note2 notePicker[] = {
+    
+    //NOTES PERIOD HAVLES EVERY OCTAVE UP
+    
+};
+
 const unsigned int NOTE_C0 = 61162;
 const unsigned int NOTE_CS0 = 57737;
 const unsigned int NOTE_D0 = 54496;
