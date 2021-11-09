@@ -140,6 +140,23 @@ int main(void) {
 }
 
 // Move the function code to here in Program Analysis, step 5.
+/*==============================================================================
+ Function: Song Writer
+ 
+ This function will allow the user to create a musical tone up to 50 notes,
+ pauses, and breaks. One button will allow user to change the note while another
+ button will change the pitch of the note. Jacob Timer Pog. 
+==============================================================================*/
+void songWriter() {
+    __delay_ms(50);
+    while(true) {
+        
+        if ()
+        
+        
+    }
+    
+}
 
 void beepSelect(int picker456) {
     
@@ -176,10 +193,10 @@ void beepSelect(int picker456) {
             __delay_us(600);
             }
         
-        for (long i = 0; i < 50000; i+=250){
+       /* for (long i = 0; i < 50000; i+=250){
             BEEPER = !BEEPER;
             __delay_us(500);
-            }
+            }*/
         
         for (long i = 0; i < 50000; i+=150){
             BEEPER = !BEEPER;
@@ -205,7 +222,7 @@ void delay_ms(unsigned char milliseconds)
 }
 
 void morseCode() {
-    __delay_ms(300);
+    __delay_ms(50);
     while(true) {
         pressedCounter = 250;
         
@@ -323,80 +340,5 @@ void playBack() {
             break;
             
         }
-    }
-}
-
-unsigned char getButtonPressed() {
-    if(SW2 == 0) {
-        return 2;
-    }
-    if(SW3 == 0) {
-        return 3;
-    }
-    if(SW4 == 0) {
-        return 4;
-    }
-    if(SW5 == 0) {
-        return 5;
-    }
-}
-
-void clearLeds() {
-    LATC = 0;
-}
-
-void lightLed(unsigned char led) {
-    switch(led) {
-        case 2:
-            LED2 = 1;
-            break;
-        case 3:
-            LED3 = 1;
-            break;
-        case 4:
-            LED4 = 1;
-            break;
-        case 5:
-            LED5 = 1;
-            break;
-        case 6:
-            LED6 = 1;
-            break;
-    }
-}
-
-unsigned char button_pressed(void) {
-    if(SW4 == 0)
-    {
-        return(UP);
-    }
-    else if(SW5 == 0)
-    {
-        return(DOWN);
-    }
-    else if(SW3 == 0) {
-        return MEIKAI;
-    } else if(SW2 == 0) {
-        return POGGERS;
-    }
-    else
-    {
-        return(noButton);
-    }
-}
-
-void pwm_LED5(unsigned char pwmValue) {
-    for(unsigned char t = 255; t != 0; t --)
-    {
-        if(pwmValue == t)
-        {
-            LED5 = 1;
-        }
-        __delay_us(20);
-    }
-    // End the pulse if pwmValue < 255
-    if(pwmValue < 255)
-    {
-        LED5 = 0;
     }
 }
