@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include    "UBMP4.h"           // Include UBMP4 constants and functions
+#include "Jacobs Notes.h"
 
 // TODO Set linker ROM ranges to 'default,-0-7FF' under "Memory model" pull-down.
 // TODO Set linker code offset to '800' under "Additional options" pull-down.
@@ -50,12 +51,13 @@ int musicMemory[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 void playBack(void);
 void beepSelect(int);
 void morseCode(void);
+void songWriter(void);
 
 int pressedCounter = 250;
 int arrayCell = 0;
 int mode = 0;
 int randonumbo = 500;
-
+int notesIndex = 0;
 struct Note {
     unsigned long period;
     unsigned long time;
@@ -69,7 +71,13 @@ extern unsigned char timerHit = 0;
 
 extern unsigned int count = 0;
 
+#define exit_beep 1
+#define select_beep 0
+#define enter_beep 2
+#define complete_beep 3
+
 #define bpm 60
+#define empty 0.0000001
 #define quarter_note 0.25
 #define eigth_note 0.125
 #define sixteenth_note .125
@@ -78,19 +86,11 @@ extern unsigned int count = 0;
 #define note(x, y) {.period = x, .time = (((bpm/60) * y * 4) * 1000000) }
 
 Note notes[] = {
-    note(NOTE_C5, eigth_note), note(NOTE_DS5, eigth_note),
-    note(NOTE_F5, eigth_note), note(NOTE_FS5, eigth_note),
-    note(NOTE_F5, eigth_note), note(NOTE_DS5, eigth_note),
-    note(NOTE_C5, eigth_note*1.5), note(NOTE_AS4, sixteenth_note/2),
-    note(NOTE_D5, sixteenth_note/2),  note(NOTE_C5, eigth_note),
-    note(REST, half_note), note(NOTE_C5, eigth_note),
-    note(NOTE_DS5, eigth_note), note(NOTE_F5, eigth_note),
-    note(NOTE_GS5, eigth_note), note(NOTE_F5, eigth_note),
-    note(NOTE_DS5, eigth_note), note(NOTE_FS5, half_note),
-    note(REST, sixteenth_note), note(NOTE_FS5, eigth_note),
-    note(NOTE_E5, eigth_note), note(NOTE_CS5, eigth_note),
-    note(NOTE_FS5, eigth_note), note(NOTE_E5, eigth_note),
-    note(NOTE_CS5, eigth_note)
+    note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note),
+    note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note),
+    note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note),
+    note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note),
+    note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note), note(REST, quarter_note),
 };
 
 int main(void) {
@@ -112,7 +112,7 @@ int main(void) {
             if (SW2 == 0 && mode <= 4) {
                 
                 mode++;
-                beepSelect(0);
+                beepSelect(select_beep);
                 while (SW2 == 0);
                 __delay_ms(50);
             } else if (mode == 4) {
@@ -133,15 +133,15 @@ int main(void) {
                 
                 LATC = 0b11010000;
                 if (SW5 == 0) {
-                    beepSelect(3);
-                    
+                    beepSelect(enter_beep);
+                    songWriter();
                 }
                 
             } else if (mode == 3) {
                 
                 LATC = 0b11110000;
                 if (SW5 == 0) {
-                    beepSelect(3);
+                    beepSelect(enter_beep);
                     morseCode();
                 }
                 
@@ -186,15 +186,63 @@ int main(void) {
 ==============================================================================*/
 void songWriter() {
     __delay_ms(50);
+    int notechangerIndex = 0;
+    int periodHolder = 1;
     while(true) {
-        
+        int num = 0;
         if (SW4 == 0) {
-            
-            note[i].period += something;
-            
+            while (SW4 == 0) {
+                num++;
+                __delay_ms(1);
+                if (num == 3000) {
+                    break;
+                }
+            }
+            if (num == 3000) {
+                
+                for (int iii = 0; iii < 40; iii++) {
+                    
+                    notes[iii].period = REST;
+                    notes[iii].time = empty;
+                    
+                }
+                
+            } else {
+                
+                periodHolder *= 2;
+                while (SW4 == 0);
+                __delay_ms(50);
+            }
         }
-    
-        if (SW5 == 0) {
+        
+        if (SW3 == 0) {
+            
+            notechangerIndex ++;
+            while (SW3 == 0);
+            __delay_ms(50);
+        }
+        
+        
+        if (SW2 == 0) {
+            while (SW2 == 0) {
+                
+                __delay_ms(500);
+                if (SW5 == 0) {
+                    
+                    notes[notesIndex].period = noteChanger[notechangerIndex];
+                    notes[notesIndex].period /= periodHolder;
+                    notesIndex++;
+                    beepSelect(complete_beep);
+                    LATC = 0b11110000;
+                    notechangerIndex = 0;
+                    periodHolder = 1;
+                }
+                while (SW5 == 0);
+                __delay_ms(50);
+            }
+        }
+        
+       if (SW5 == 0) {
             for (int i = 0; i < NOTES_LENGTH; i++) {
                 if (notes[i].period == 0) {
                     delay_us(notes[i].time);
@@ -209,14 +257,13 @@ void songWriter() {
                     RESET();
                 }
             }
-
         }
     }
 }
 
 void beepSelect(int picker456) {
     
-    if (picker456 == 0) {
+    if (picker456 == 0) { //Exit Beep
         for (long i = 0; i < 50000; i+=250){
             BEEPER = !BEEPER;
             __delay_us(500);
@@ -228,7 +275,7 @@ void beepSelect(int picker456) {
         }
     }
     
-    if (picker456 == 1) {
+    if (picker456 == 1) { //Selector Beep
         
         for (long i = 0; i < 50000; i+=200){
             BEEPER = !BEEPER;
@@ -242,7 +289,7 @@ void beepSelect(int picker456) {
         
     }
     
-    if (picker456 == 3) {
+    if (picker456 == 2) { //Enter beep
         
         for (long i = 0; i < 50000; i+=300){
             BEEPER = !BEEPER;
@@ -258,6 +305,15 @@ void beepSelect(int picker456) {
             BEEPER = !BEEPER;
             __delay_us(300);
         }
+    }
+    
+    if (picker456 == 3) {
+        
+        for (long i = 0; i < 50000; i += 955) {
+            BEEPER = !BEEPER;
+            __delay_us(1911);
+        }
+        
     }
     
 }
@@ -338,7 +394,7 @@ void morseCode() {
                         __delay_ms(1);
 
                         if (pressedCounter == 0) {
-                            beepSelect(1);
+                            beepSelect(select_beep);
                             return;
                         }
                     } else if (SW4 == 1){

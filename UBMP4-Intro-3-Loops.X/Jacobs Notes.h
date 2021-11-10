@@ -34,10 +34,10 @@ struct Note2 {
 
 typedef struct Note2 Note2;
 
-Note2 notePicker[] = {
+int noteChanger[] = {
     
+    7645, 7216, 6811, 6428, 6068, 5727, 5405, 5102, 4816, 4545, 4290, 4050,
     //NOTES PERIOD HAVLES EVERY OCTAVE UP
-    
 };
 
 const unsigned int NOTE_C0 = 61162;
