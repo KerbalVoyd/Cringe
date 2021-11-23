@@ -31,7 +31,8 @@ struct Note2 {
     unsigned long pitch;
     
 };
-
+/*Next step: add time notes are played on button by making them hold the 
+button down for certain amounts of time.*/
 typedef struct Note2 Note2;
 
 int noteChanger[] = {

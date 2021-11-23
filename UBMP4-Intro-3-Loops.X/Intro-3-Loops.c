@@ -183,6 +183,12 @@ int main(void) {
  This function will allow the user to create a musical tone up to 50 notes,
  pauses, and breaks. One button will allow user to change the note while another
  button will change the pitch of the note. Jacob Timer Pog. 
+ 
+ SW4: changes octave of note only goes up tho rip
+ SW3: changes note eg. turns C into D and D into E ETC
+ SW4 hold 3 sec: deletes all notes from the music memory
+ SW2+SW5 hold until beep: Adds note you have modified to the music memory
+ 
 ==============================================================================*/
 void songWriter() {
     __delay_ms(50);
@@ -206,6 +212,8 @@ void songWriter() {
                     notes[iii].time = empty;
                     
                 }
+                periodHolder = 1;
+                notechangerIndex = 0;
                 
             } else {
                 
@@ -282,10 +290,10 @@ void beepSelect(int picker456) {
             __delay_us(400);
         }
         
-        for (long i = 0; i < 50000; i+=250){
+       /* for (long i = 0; i < 50000; i+=250){
             BEEPER = !BEEPER;
             __delay_us(500);
-            }
+            }*/
         
     }
     
@@ -301,10 +309,10 @@ void beepSelect(int picker456) {
             __delay_us(500);
             }*/
         
-        for (long i = 0; i < 50000; i+=150){
+       /* for (long i = 0; i < 50000; i+=150){
             BEEPER = !BEEPER;
             __delay_us(300);
-        }
+        }*/
     }
     
     if (picker456 == 3) {
